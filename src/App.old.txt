@@ -1,0 +1,50 @@
+import { useState } from "react";
+// import { PriceText } from "./components/atoms/PriceText";
+import { usePrices, type Region } from "./hooks/usePrices";
+import { PriceCircle } from "./components/organisms/PriceCircle";
+import { LabeledPrice } from "./components/molecules/LabeledPrice";
+
+function App() {
+  // useState([]) хранит цены; пока данных нет, массив пустой.
+  const [region, setRegion] = useState<Region>("DK2");
+  // usePrices(region) получает цены для выбранного региона.
+  const { prices, isLoading, error } = usePrices(region);
+  // извлекаем значения цен в массив
+  const values = prices.map((p) => p.DKK_per_kWh);
+  // находим минимальное и максимальное значения цен
+  const lowest = Math.min(...values);
+  const highest = Math.max(...values);
+
+  const currentHour = new Date().getHours();
+  //   в массиве ровно 24 элемента по часам, поэтому индекс равен текущему часу
+  const currentPrice = prices[currentHour];
+
+  return (
+    <div>
+      <h1>ElPriser.nu</h1>
+      <select
+        value={region}
+        onChange={(e) => setRegion(e.target.value as Region)}
+      >
+        <option value="DK1">DK1</option>
+        <option value="DK2">DK2</option>
+      </select>
+      {isLoading && <p>Henter priser…</p>}
+      {error && <p>{error}</p>}
+      <p>
+        Du viser elpriser for {region === "DK1" ? "Vestdanmark" : "Østdanmark"}
+      </p>
+      {/* conditional rendering for current price */}
+      {/* render current price if available */}
+      {currentPrice && (
+        <>
+          <PriceCircle price={currentPrice.DKK_per_kWh} />
+          <LabeledPrice price={lowest} label="Laveste pris" />
+          <LabeledPrice price={highest} label="Højeste pris" />
+        </>
+      )}
+    </div>
+  );
+}
+
+export default App;
